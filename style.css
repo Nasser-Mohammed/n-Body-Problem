@@ -41,3 +41,25 @@ body {
     margin-top: 10px;
     margin-bottom: 10px;
 }
+
+#planet-palette {
+  display: flex;
+  justify-content: space-evenly; /* or try space-between or space-around */
+  align-items: center;           /* vertically center if needed */
+  padding: 10px;
+  background: #222;
+  width: 100%;                   /* make sure it stretches full width */
+  box-sizing: border-box;        /* include padding in width */
+}
+
+#planet-palette img {
+  width: 50px;
+  cursor: grab;
+}
+
+
+#simulation-canvas {
+  border: 1px solid #ccc;
+  display: block;
+  margin-top: 10px;
+}

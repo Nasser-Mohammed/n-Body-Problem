@@ -10,7 +10,13 @@ let running = false;
 let currentPlanet = "earth";
 let bodies = [];
 let particles = [];
+let width;
+let height;
+let isDragging = false;
+let planetsInSimulation = [];
 
+
+/*archived data
 const planets = {
   mars: new Image(),
   earth: new Image(),
@@ -21,22 +27,22 @@ const planets = {
   sun: new Image()
 };
 
-planets.moon.src = "moon.png";
-planets.sun.src = "sun.png";
-planets.earth.src = "earth.png";
-planets.jupiter.src = "jupiter.png";
-planets.saturn.src = "saturn.png";
-planets.mars.src = "mars.png";
-planets.neptune.src = "neptune.png";
+planets.moon.src = "images/moon.png";
+planets.sun.src = "images/sun.png";
+planets.earth.src = "images/earth.png";
+planets.jupiter.src = "images/jupiter.png";
+planets.saturn.src = "images/saturn.png";
+planets.mars.src = "images/mars.png";
+planets.neptune.src = "images/neptune.png";
 
 const planetSizes = {
-  mars: 20,
-  earth: 30,
-  jupiter: 60,
-  saturn: 50,
-  neptune: 40,
-  moon: 15,
-  sun: 80
+  mars: 40,
+  earth: 60,
+  jupiter: 120,
+  saturn: 95,
+  neptune: 80,
+  moon: 30,
+  sun: 275
 };
 
 const planetMasses = {
@@ -48,136 +54,67 @@ const planetMasses = {
   moon: 0.0123,
   sun: 333000
 };
+*/
 
-class Body {
-  constructor(x, y, vx, vy, mass, imgKey) {
-    this.x = x;
-    this.y = y;
-    this.vx = vx;
-    this.vy = vy;
-    this.mass = mass;
-    this.imgKey = imgKey;
-  }
 
-  updatePosition(dt) {
-    this.x += this.vx * dt;
-    this.y += this.vy * dt;
-  }
+const celestialObjects = new Map();
 
-  applyForce(fx, fy, dt) {
-    this.vx += (fx / this.mass) * dt;
-    this.vy += (fy / this.mass) * dt;
-  }
+celestialObjects.set('sun', {stateVector: {}, size: 275, mass: 333000, inSimulation: false, image: Object.assign(new Image(), {src: "images/sun.png"})});
+celestialObjects.set('earth', {stateVector: {}, size: 60, mass: 1, inSimulation: false, image: Object.assign(new Image(), {src: "images/earth.png"})});
+celestialObjects.set('moon', {stateVector: {}, size: 30, mass: 0.0123, inSimulation: false, image: Object.assign(new Image(), {src: "images/moon.png"})});
+celestialObjects.set('mars', {sateVector: {}, size: 40, mass: 0.107, inSimulation: false, image: Object.assign(new Image(), {src: "images/mars.png"})});
+celestialObjects.set('jupiter', {stateVector: {}, size: 120, mass: 317.8, inSimulation: false, image: Object.assign(new Image(), {src: "images/jupiter.png"})});
+celestialObjects.set('saturn', {sateVector: {}, size: 95, mass: 95.2, inSimulation: false, image: Object.assign(new Image(), {src: "images/saturn.png"})});
+celestialObjects.set('neptune', {stateVector: {},  size: 80, mass: 17.1, inSimulation: false, image: Object.assign(new Image(), {src: "images/neptune.png"})});
 
-  draw(ctx) {
-    const img = planets[this.imgKey];
-    const size = planetSizes[this.imgKey] || 30;
-    ctx.drawImage(img, this.x - size / 2, this.y - size / 2, size, size);
+
+function createCelestialInstance(name) {
+  const prototype = celestialObjects.get(name);
+  if (!prototype) return null;
+  return {
+    ...prototype // shallow copy all properties
+    // stateVector: { ...stateVector }, // clone or initialize new state vector
+    // image: Object.assign(new Image(), { src: prototype.image.src }) // ensure a separate Image instance
+  };
+}
+
+function drawPlanets(){
+
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, width, height);
+  for(let i = 0; i < planetsInSimulation.length; i++){
+    const planet = planetsInSimulation[i];
+    console.log(planet.image.src);
+    ctx.drawImage(
+      planet.image,
+      planet.stateVector.x - Math.floor(planet.size/2),
+      planet.stateVector.y - Math.floor(planet.size/2),
+      planet.size,
+      planet.size
+    );
+
   }
 }
 
-class Particle {
-  constructor(x, y, vx, vy) {
-    this.x = x;
-    this.y = y;
-    this.vx = vx;
-    this.vy = vy;
-    this.life = 50;
-  }
+function addPlanetToSimulation(celestialBody, x, y) {
 
-  update() {
-    this.x += this.vx;
-    this.y += this.vy;
-    this.life--;
-  }
+  const body = createCelestialInstance(celestialBody);
+  const fixedBody = {stateVector: {x, y}, size: body.size, mass: body.mass, inSimulation: true, image: Object.assign(new Image(), {src: body.image.src})};
 
-  draw(ctx) {
-    if (this.life > 0) {
-      ctx.fillStyle = "orange";
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, 2, 0, 2 * Math.PI);
-      ctx.fill();
-    }
-  }
+  console.log(fixedBody);
+
+  // Wait for image to load before drawing
+  fixedBody.image.onload = () => {
+    planetsInSimulation.push(fixedBody);
+    drawPlanets();
+  };
+
+  // Optional: fallback in case image fails
+  fixedBody.image.onerror = () => {
+    console.error("Failed to load image for:", celestialBody);
+  };
 }
 
-function handlePlanetChange() {
-  const select = document.getElementById("planet-select");
-  currentPlanet = select.value;
-  document.getElementById("planet-preview").src = `${currentPlanet}.png`;
-  resetSimulation();
-}
-
-function drawSystem() {
-  const canvas = document.getElementById("simCanvas");
-  const ctx = canvas.getContext("2d");
-  ctx.fillStyle = 'black';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  for (const body of bodies) {
-    body.draw(ctx);
-  }
-
-  for (const p of particles) {
-    p.draw(ctx);
-  }
-
-  document.getElementById("time-display").textContent = `Day: ${simulationTime.toFixed(0)}`;
-}
-
-function explode(x, y) {
-  for (let i = 0; i < 30; i++) {
-    const angle = Math.random() * 2 * Math.PI;
-    const speed = Math.random() * 4;
-    const vx = Math.cos(angle) * speed;
-    const vy = Math.sin(angle) * speed;
-    particles.push(new Particle(x, y, vx, vy));
-  }
-}
-
-function animate() {
-  if (!running) return;
-  animationId = requestAnimationFrame(animate);
-  frameCount++;
-  simulationTime += dt;
-
-  const forces = bodies.map(() => ({ fx: 0, fy: 0 }));
-
-  for (let i = 0; i < bodies.length; i++) {
-    for (let j = 0; j < bodies.length; j++) {
-      if (i === j) continue;
-      const dx = bodies[j].x - bodies[i].x;
-      const dy = bodies[j].y - bodies[i].y;
-      const distSq = dx * dx + dy * dy;
-      const dist = Math.sqrt(distSq) + 1e-6;
-
-      const F = (G * bodies[i].mass * bodies[j].mass) / distSq;
-      const fx = F * dx / dist;
-      const fy = F * dy / dist;
-
-      forces[i].fx += fx;
-      forces[i].fy += fy;
-
-      const sizeSum = (planetSizes[bodies[i].imgKey] + planetSizes[bodies[j].imgKey]) / 2;
-      if (dist < sizeSum * 0.5) {
-        const smallerIndex = bodies[i].mass < bodies[j].mass ? i : j;
-        explode(bodies[smallerIndex].x, bodies[smallerIndex].y);
-        bodies.splice(smallerIndex, 1);
-        return; // only handle one collision per frame
-      }
-    }
-  }
-
-  for (let i = 0; i < bodies.length; i++) {
-    bodies[i].applyForce(forces[i].fx, forces[i].fy, dt);
-    bodies[i].updatePosition(dt);
-  }
-
-  particles = particles.filter(p => p.life > 0);
-  particles.forEach(p => p.update());
-
-  drawSystem();
-}
 
 function startSimulation() {
   animate();
@@ -190,41 +127,58 @@ function resetSimulation() {
   frameCount = 0;
   particles = [];
   document.getElementById("start-simulation").textContent = "Click to Start Simulation";
-
-  const moonX = 350 + (Math.random() - 0.5) * 200;
-  const moonY = 250 + (Math.random() - 0.5) * 200;
-  const planetX = 350 + (Math.random() - 0.5) * 400;
-  const planetY = 250 + (Math.random() - 0.5) * 400;
-
-  const moonDist = Math.sqrt(Math.pow(moonX - 350, 2) + Math.pow(moonY - 250, 2));
-  const planetDist = Math.sqrt(Math.pow(planetX - 350, 2) + Math.pow(planetY - 250, 2));
-
-  const moonV = Math.sqrt(G * planetMasses.sun / moonDist) * (0.85 + Math.random() * 0.3);
-  const planetV = Math.sqrt(G * planetMasses.sun / planetDist) * (0.85 + Math.random() * 0.3);
-
-  const moonVx = -(moonY - 250) / moonDist * moonV;
-  const moonVy =  (moonX - 350) / moonDist * moonV;
-  const planetVx = -(planetY - 250) / planetDist * planetV;
-  const planetVy =  (planetX - 350) / planetDist * planetV;
-
-  bodies = [
-    new Body(350, 250, 0, 0, planetMasses.sun, "sun"),
-    new Body(moonX, moonY, moonVx, moonVy, planetMasses.moon, "moon"),
-    new Body(planetX, planetY, planetVx, planetVy, planetMasses[currentPlanet], currentPlanet)
-  ];
-
-  drawSystem();
 }
+
 
 document.addEventListener("DOMContentLoaded", () => {
   const canvas = document.getElementById("simCanvas");
   ctx = canvas.getContext("2d");
+  height = ctx.canvas.height;
+  width = ctx.canvas.width;
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, width, height);
 
-  resetSimulation();
+  document.querySelectorAll('#planet-palette img').forEach(img => {
+  img.addEventListener('dragstart', (e) => {
+    
+    e.dataTransfer.setData('text/plain', e.target.dataset.planet);
 
-  document.getElementById("add-planet").addEventListener("click", () => {
-    document.getElementById("add-planet").textContent = "Added";
+    e.dataTransfer.setDragImage(e.target, e.target.width/2, e.target.height/2);
+
   });
+});
+  canvas.addEventListener('dragover', (e) => e.preventDefault());
+
+  canvas.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const name = e.dataTransfer.getData('text/plain');
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    console.log('Dropped:', name, " at: ", x, ",", y);
+    addPlanetToSimulation(name, x, y);
+});
+  document.getElementById("simCanvas").addEventListener("mousedown", () =>{
+    if (isDragging){
+    }
+    else{
+      isDragging = true;
+    }
+  });
+
+  document.getElementById("simCanvas").addEventListener("mousemove", () => {
+      if (isDragging){
+        console.log("dragging on canvas");
+      }
+  });
+
+
+   document.getElementById("simCanvas").addEventListener("mouseup", () =>{
+    isDragging = false;
+  });
+
 
   document.getElementById("start-simulation").addEventListener("click", () => {
     const btn = document.getElementById("start-simulation");

@@ -9,11 +9,9 @@
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
-  <p>In memory of Kodie</p>
-  <img src="kodie.png" alt="Kodie" width="150" height="150">
   <div class="wrapper">
     <h1>The n-Body Problem Simulation</h1>
-    <h4>Solutions approximated by Euler's method coupled with state augmentation</h4>
+    <h4>Solutions approximated with Runge-Kutta method and state augmentation</h4>
     <h2><u>The 3-Body System</u></h2>
     <div>
         \[
@@ -27,27 +25,22 @@
         \]
       </div>
       <hr>
-      <div class="planet-selector">
-        <label for="planet-select">Choose a planet:</label>
-        <select id="planet-select" onchange="handlePlanetChange()">
-          <option value="earth">Earth</option>
-          <option value="mars">Mars</option>
-          <option value="jupiter">Jupiter</option>
-          <option value="saturn">Saturn</option>
-          <option value="neptune">Neptune</option>
-        </select>
       
-        <!-- Optional: Preview image -->
-        <img id="planet-preview" src="earth.png" width="40" height="40" style="margin-left: 5px;" />
-        </div>
-        <button id = "add-planet">Click to add a planet to the simulation (not functional)</button>
-    </br>
+      <div id="planet-palette">
+        <img src="images/sun.png" alt="Sun" draggable="true" class="planet-icon" data-planet="sun">
+        <img src="images/earth.png" alt="Earth" draggable="true" class="planet-icon" data-planet="earth">
+        <img src="images/moon.png" alt="Jupiter" draggable="true" class="planet-icon" data-planet="moon">
+        <img src="images/mars.png" alt="Mars" draggable="true" class="planet-icon" data-planet="mars">
+        <img src="images/saturn.png" alt="Saturn" draggable="true" class="planet-icon" data-planet="saturn">
+        <img src="images/jupiter.png" alt="Jupiter" draggable="true" class="planet-icon" data-planet="jupiter">
+        <img src="images/neptune.png" alt="Neptune" draggable="true" class="planet-icon" data-planet="neptune">
+      </div>
     <button id = "start-simulation">Click to start simulation</button>
     <button id = "reset">Reset Simulation</button>
     </br>
     <div id="time-display">Day: 0</div>
     <div class="canvas-container">
-        <canvas id="simCanvas" width="700" height="500"></canvas>
+        <canvas id="simCanvas" width="1000" height="750"></canvas>
       </div>
 
       
