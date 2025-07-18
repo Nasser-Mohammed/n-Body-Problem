@@ -289,7 +289,13 @@ function resetSimulation() {
   simulationTime = 0;
   frameCount = 0;
   planetsInSimulation = []
-  addPlanetToSimulation('sun', sun.stateVector.x, sun.stateVector.y, true);
+  sun.stateVector.x = 0;
+  sun.stateVector.y = 0;
+  sun.stateVector.Xacceleration = 0;
+  sun.stateVector.Yacceleration = 0;
+  sun.stateVector.Xvelocity = 0;
+  sun.stateVector.Yvelocity = 0;
+  addPlanetToSimulation(sun, sun.stateVector.x, sun.stateVector.y, true);
   //drawPlanets()
   document.getElementById("start-simulation").textContent = "Click to Start Simulation";
 }
